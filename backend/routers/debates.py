@@ -6,6 +6,11 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime
 import uuid
+import logging
+
+# Setup logging
+logger = logging.getLogger("debates")
+logger.setLevel(logging.DEBUG)
 
 from models.schemas import (
     DebateCreate, DebateResponse, DebateMessage, 
