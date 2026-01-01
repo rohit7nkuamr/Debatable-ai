@@ -188,7 +188,7 @@ def init_default_agents():
             "name": d["name"],
             "personality": d["personality"],
             "description": d["description"],
-            "model": "llama-3.1-70b-versatile",
+            "model": "llama-3.3-70b-versatile",
             "created_at": datetime.utcnow(),
             "document_count": 0,
             "documents": [],

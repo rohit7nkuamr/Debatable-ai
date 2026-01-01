@@ -1,23 +1,23 @@
-"""
-Groq LLM Service - Handles AI responses for debates
-"""
-
 import os
 import sys
+import logging
 from pathlib import Path
 from typing import Optional, List, Dict
 from groq import Groq
 from dotenv import load_dotenv
 
+# Setup logging
+logger = logging.getLogger("llm_service")
+logger.setLevel(logging.DEBUG)
+
 # Force load .env from the backend directory
 backend_dir = Path(__file__).parent.parent
 env_path = backend_dir / ".env"
-print(f"🔍 [LLM_SERVICE] Loading .env from: {env_path}", flush=True)
-print(f"🔍 [LLM_SERVICE] .env file exists: {env_path.exists()}", flush=True)
+logger.info(f"Loading .env from: {env_path}")
 load_dotenv(env_path)
 
 api_key = os.getenv("GROQ_API_KEY")
-print(f"🔍 [LLM_SERVICE] API Key loaded: {api_key[:15] if api_key else 'None'}...", flush=True)
+logger.info(f"API Key loaded: {api_key[:15] if api_key else 'None'}...")
 
 
 class GroqLLMService:
@@ -25,9 +25,9 @@ class GroqLLMService:
     
     def __init__(self):
         self.api_key = os.getenv("GROQ_API_KEY")
-        print(f"🔍 [LLM_SERVICE.__init__] API Key in init: {self.api_key[:15] if self.api_key else 'None'}...", flush=True)
+        logger.debug(f"API Key in init: {self.api_key[:15] if self.api_key else 'None'}...")
         self.client = Groq(api_key=self.api_key) if self.api_key else None
-        print(f"🔍 [LLM_SERVICE.__init__] Client created: {self.client}", flush=True)
+        logger.debug(f"Client created: {self.client}")
         self.default_model = "llama-3.3-70b-versatile"
     
     def is_configured(self) -> bool:
@@ -46,16 +46,12 @@ class GroqLLMService:
     ) -> str:
         """Generate AI debater response"""
         
-        import sys
-        print(f"🔍 [DEBUG] VERSION_123456 get_debate_response called", flush=True)
-        print(f"🔍 [DEBUG] API Key: {self.api_key[:15] if self.api_key else 'None'}...", flush=True)
-        print(f"🔍 [DEBUG] Client: {self.client}", flush=True)
-        print(f"🔍 [DEBUG] is_configured: {self.is_configured()}", flush=True)
-        sys.stdout.flush()
+        logger.debug(f"get_debate_response called")
+        logger.debug(f"is_configured: {self.is_configured()}")
         
         if not self.is_configured():
             # Return mock response if API not configured
-            print(f"⚠️ [DEBUG] Returning MOCK because is_configured=False", flush=True)
+            logger.warning("Returning MOCK because is_configured=False")
             return self._mock_response(human_message)
         
         # Build system prompt based on personality
@@ -78,10 +74,8 @@ class GroqLLMService:
         messages.append({"role": "user", "content": human_message})
         
         try:
-            print(f"🤖 Calling Groq API with model: {model or self.default_model}")
-            print(f"📝 Messages count: {len(messages)}")
-            print(f"🔑 API Key present: {bool(self.api_key)}")
-            print(f"🔑 API Key starts with: {self.api_key[:10] if self.api_key else 'None'}...")
+            logger.debug(f"Calling Groq API with model: {model or self.default_model}")
+            logger.debug(f"Messages count: {len(messages)}")
             
             response = self.client.chat.completions.create(
                 model=model or self.default_model,
@@ -91,12 +85,12 @@ class GroqLLMService:
             )
             
             result = response.choices[0].message.content
-            print(f"✅ Groq API success! Response: {result[:100]}...")
+            logger.info("Groq API success!")
             return result
         except Exception as e:
-            print(f"❌ Groq API error: {type(e).__name__}: {e}")
+            logger.error(f"Groq API error: {type(e).__name__}: {e}")
             import traceback
-            traceback.print_exc()
+            logger.error(traceback.format_exc())
             return self._mock_response(human_message)
     
     def get_judge_verdict(

@@ -153,8 +153,8 @@ async def send_message(debate_id: str, message_data: DebateMessageSend):
     agent = debate.get("ai_agent", {})
     
     print(f"🔍 [DEBATES_ROUTER] About to call llm_service.get_debate_response", flush=True)
-    print(f"🔍 [DEBATES_ROUTER] llm_service = {llm_service}", flush=True)
-    print(f"🔍 [DEBATES_ROUTER] llm_service.is_configured() = {llm_service.is_configured()}", flush=True)
+    logger.debug(f"About to call llm_service.get_debate_response")
+    logger.debug(f"llm_service is_configured: {llm_service.is_configured()}")
     
     ai_content = llm_service.get_debate_response(
         topic=debate["topic"],
@@ -165,7 +165,7 @@ async def send_message(debate_id: str, message_data: DebateMessageSend):
         model=agent.get("model"),
     )
     
-    print(f"🔍 [DEBATES_ROUTER] Got response: {ai_content[:50]}...", flush=True)
+    logger.debug(f"Got response: {ai_content[:50]}...")
     
     ai_message = DebateMessage(
         id=str(uuid.uuid4()),
