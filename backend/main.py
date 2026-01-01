@@ -8,12 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
 
 # Load environment variables
 load_dotenv()
 
 # Import routers
 from routers import agents, debates, videos, judge
+from routers.tts import router as tts_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,6 +50,10 @@ app.include_router(agents.router, prefix="/api/agents", tags=["Agents"])
 app.include_router(debates.router, prefix="/api/debates", tags=["Debates"])
 app.include_router(videos.router, prefix="/api/videos", tags=["Videos"])
 app.include_router(judge.router, prefix="/api/judge", tags=["Judge"])
+app.include_router(tts_router, prefix="/api/tts", tags=["TTS"])
+
+# Mount static files for audio
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 async def root():
@@ -70,7 +76,6 @@ async def health_check():
     return {
         "status": "healthy",
         "groq_configured": bool(os.getenv("GROQ_API_KEY")),
-        "supabase_configured": bool(os.getenv("SUPABASE_URL")),
     }
 
 if __name__ == "__main__":

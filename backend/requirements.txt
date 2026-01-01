@@ -6,3 +6,5 @@ python-multipart==0.0.6
 pydantic==2.5.3
 httpx==0.26.0
 sse-starlette==2.0.0
+edge-tts==6.1.9
+aiofiles==23.2.1

@@ -179,6 +179,7 @@ def init_default_agents():
         {"name": "Aristotle", "personality": AgentPersonality.PHILOSOPHICAL, "description": "Classical philosopher focused on ethics and logic"},
         {"name": "Socrates", "personality": AgentPersonality.SOCRATIC, "description": "Master of questioning and dialogue"},
         {"name": "Darwin", "personality": AgentPersonality.SCIENTIFIC, "description": "Evidence-based scientific debater"},
+        {"name": "Chanakya", "personality": AgentPersonality.STRATEGIC, "description": "Ancient Indian polymath, master of strategy and economics (Speaks Hindi/English)"},
     ]
     
     for d in defaults:

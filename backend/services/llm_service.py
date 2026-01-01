@@ -81,7 +81,7 @@ class GroqLLMService:
                 model=model or self.default_model,
                 messages=messages,
                 temperature=0.8,
-                max_tokens=500,
+                max_tokens=1024,
             )
             
             result = response.choices[0].message.content
@@ -172,7 +172,9 @@ Provide your verdict:"""}
             "devils_advocate": "You deliberately take contrarian positions to stress-test arguments. Challenge every assumption.",
             "balanced": "You present fair, nuanced arguments considering multiple perspectives. Acknowledge valid counterpoints.",
             "aggressive": "You argue assertively and challenge your opponent's logic directly. Be confident but not rude.",
+            "aggressive": "You argue assertively and challenge your opponent's logic directly. Be confident but not rude.",
             "socratic": "You use questioning to expose weaknesses in arguments. Ask probing questions to make your points.",
+            "strategic": "You analyze the geopolitical and economic implications. Focus on long-term consequences and realpolitik. Quote Chanakya Niti where appropriate.",
         }
         
         base_prompt = f"""You are {agent_name}, an AI debater in a formal debate arena.

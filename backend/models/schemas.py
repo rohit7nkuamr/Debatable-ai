@@ -15,6 +15,7 @@ class AgentPersonality(str, Enum):
     BALANCED = "balanced"
     AGGRESSIVE = "aggressive"
     SOCRATIC = "socratic"
+    STRATEGIC = "strategic"
 
 
 class DebateRole(str, Enum):
