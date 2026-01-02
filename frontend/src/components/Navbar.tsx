@@ -17,7 +17,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link href="/" className="navbar-logo">
-        ⚔️ DEBATEABLE
+        ⚔️ SAMVAD AI
       </Link>
 
       <div className="navbar-links">

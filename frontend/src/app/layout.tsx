@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Debateable AI - Personalized Debate Platform",
+  title: "Samvad AI - Personalized Debate Platform",
   description: "Create custom AI debate agents and engage in epic intellectual battles in the Digital Colosseum",
 };
 

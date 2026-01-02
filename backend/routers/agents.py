@@ -138,15 +138,15 @@ async def export_agent(agent_id: str):
     temp_api_key = f"deb_{uuid.uuid4().hex[:24]}"
     expires_at = datetime.utcnow()  # Add proper expiration
     
-    embed_code = f"""<!-- Debateable AI Agent Embed -->
-<script src="https://debateable.ai/embed.js"></script>
-<div id="debateable-agent" 
+    embed_code = f"""<!-- Samvad AI Agent Embed -->
+<script src="https://samvad.ai/embed.js"></script>
+<div id="samvad-agent" 
      data-agent-id="{agent_id}"
      data-api-key="{temp_api_key}"
      data-theme="dark">
 </div>
 <script>
-  Debateable.init({{
+  Samvad.init({{
     agentId: '{agent_id}',
     apiKey: '{temp_api_key}',
     onMessage: (msg) => console.log('Agent:', msg),
@@ -162,7 +162,7 @@ Copy and paste the embed code into your HTML.
 
 ## Option 2: API Integration
 ```bash
-curl -X POST https://api.debateable.ai/v1/agents/{agent_id}/debate \\
+curl -X POST https://api.samvad.ai/v1/agents/{agent_id}/debate \\
   -H "Authorization: Bearer {temp_api_key}" \\
   -H "Content-Type: application/json" \\
   -d '{{"message": "Your debate topic or argument"}}'

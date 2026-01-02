@@ -1,5 +1,5 @@
 """
-Debateable AI Backend - Main Application
+Samvad AI Backend - Main Application
 FastAPI server with Groq LLM integration for debate AI agents
 """
 
@@ -21,16 +21,16 @@ from routers.tts import router as tts_router
 async def lifespan(app: FastAPI):
     """Application lifecycle management"""
     # Startup
-    print("🚀 Starting Debateable AI Backend...")
+    print("🚀 Starting Samvad AI Backend...")
     print(f"📡 Groq API: {'Configured' if os.getenv('GROQ_API_KEY') else 'Not configured'}")
     yield
     # Shutdown
-    print("👋 Shutting down Debateable AI Backend...")
+    print("👋 Shutting down Samvad AI Backend...")
 
 # Create FastAPI app
 app = FastAPI(
-    title="Debateable AI API",
-    description="Backend API for the Debateable AI platform - Create AI debate agents, host debates, and more",
+    title="Samvad AI API",
+    description="Backend API for the Samvad AI platform - Create AI debate agents, host debates, and more",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -60,7 +60,7 @@ async def root():
     """Health check endpoint"""
     return {
         "status": "online",
-        "service": "Debateable AI API",
+        "service": "Samvad AI API",
         "version": "1.0.0",
         "endpoints": {
             "agents": "/api/agents",

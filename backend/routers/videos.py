@@ -173,8 +173,8 @@ async def start_live_stream(
     return {
         "stream_id": stream_id,
         "stream_key": new_stream["stream_key"],
-        "rtmp_url": f"rtmp://stream.debateable.ai/live/{stream_id}",
-        "playback_url": f"https://debateable.ai/watch/{stream_id}",
+        "rtmp_url": f"rtmp://stream.samvad.ai/live/{stream_id}",
+        "playback_url": f"https://samvad.ai/watch/{stream_id}",
         "message": "Live stream created. Use the stream key to broadcast."
     }
 

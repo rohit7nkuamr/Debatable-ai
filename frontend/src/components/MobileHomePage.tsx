@@ -122,7 +122,7 @@ export default function MobileHomePage() {
           isLive: false, // Need live status from API
           debaters: { human: 'Human', ai: 'AI' }, // Potentially missing from video list endpoint
           topic: 'Debate Topic',
-          channel: 'Debateable',
+          channel: 'Samvad AI',
           channelAvatar: '⚔️'
         }));
         // If the API returns empty, keep fallback or handle empty state
@@ -535,7 +535,7 @@ export default function MobileHomePage() {
         {/* Mobile Header */}
         <header className="mobile-header">
           <div className="mobile-logo">
-            ⚔️ DEBATEABLE
+            ⚔️ SAMVAD AI
           </div>
           <div className="header-actions">
             <button className="header-btn">🔔</button>
