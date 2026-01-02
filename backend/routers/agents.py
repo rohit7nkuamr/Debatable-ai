@@ -9,11 +9,17 @@ import uuid
 
 from models.schemas import AgentCreate, AgentResponse, AgentExport, AgentPersonality
 
+from services.tts_service import tts_service, VOICE_MAPPING
+
 router = APIRouter()
 
 # In-memory storage (replace with database in production)
 agents_db: dict = {}
 
+@router.get("/voices")
+async def list_voices():
+    """List available TTS voices"""
+    return tts_service.get_available_voices()
 
 @router.post("/", response_model=AgentResponse)
 async def create_agent(agent: AgentCreate):
@@ -25,6 +31,7 @@ async def create_agent(agent: AgentCreate):
         "name": agent.name,
         "personality": agent.personality,
         "description": agent.description,
+        "voice_id": agent.voice_id,
         "model": agent.model,
         "system_prompt": agent.system_prompt,
         "created_at": datetime.utcnow(),
@@ -39,6 +46,7 @@ async def create_agent(agent: AgentCreate):
         name=agent.name,
         personality=agent.personality,
         description=agent.description,
+        voice_id=agent.voice_id,
         model=agent.model,
         created_at=new_agent["created_at"],
         document_count=0,
@@ -54,6 +62,7 @@ async def list_agents():
             name=a["name"],
             personality=a["personality"],
             description=a.get("description"),
+            voice_id=a.get("voice_id"),
             model=a["model"],
             created_at=a["created_at"],
             document_count=a.get("document_count", 0),
@@ -74,6 +83,7 @@ async def get_agent(agent_id: str):
         name=a["name"],
         personality=a["personality"],
         description=a.get("description"),
+        voice_id=a.get("voice_id"),
         model=a["model"],
         created_at=a["created_at"],
         document_count=a.get("document_count", 0),
@@ -184,11 +194,15 @@ def init_default_agents():
     
     for d in defaults:
         agent_id = str(uuid.uuid4())
+        # Use existing mapping to pre-fill voice_id, or let it fall back
+        voice_id = VOICE_MAPPING.get(d["name"].lower())
+        
         agents_db[agent_id] = {
             "id": agent_id,
             "name": d["name"],
             "personality": d["personality"],
             "description": d["description"],
+            "voice_id": voice_id,
             "model": "llama-3.3-70b-versatile",
             "created_at": datetime.utcnow(),
             "document_count": 0,

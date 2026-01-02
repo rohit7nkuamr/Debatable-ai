@@ -31,6 +31,7 @@ class AgentCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=50, description="Agent name")
     personality: AgentPersonality = Field(default=AgentPersonality.BALANCED)
     description: Optional[str] = Field(None, max_length=500)
+    voice_id: Optional[str] = Field(None, description="Voice ID from tts_service")
     model: str = Field(default="llama-3.1-70b-versatile", description="LLM model to use")
     system_prompt: Optional[str] = Field(None, description="Custom system prompt")
 
@@ -41,6 +42,7 @@ class AgentResponse(BaseModel):
     name: str
     personality: AgentPersonality
     description: Optional[str]
+    voice_id: Optional[str] = None
     model: str
     created_at: datetime
     document_count: int = 0
@@ -72,7 +74,9 @@ class DebateCreate(BaseModel):
     """Request to start a new debate"""
     topic: str = Field(..., min_length=5, max_length=200)
     human_name: str = Field(default="You")
-    ai_agent_id: str = Field(..., description="ID of the AI agent to debate against")
+    ai_agent_id: str = Field(..., description="ID of the first AI agent")
+    secondary_agent_id: Optional[str] = Field(None, description="ID of the second AI agent (for AI vs AI)")
+    mode: str = Field(default="one_vs_one", description="'one_vs_one' or 'ai_vs_ai'")
     judge_type: str = Field(default="ai", description="'ai' or 'human'")
 
 
@@ -83,6 +87,8 @@ class DebateResponse(BaseModel):
     status: str  # "active", "completed", "cancelled"
     human_name: str
     ai_name: str
+    mode: str = "one_vs_one"
+    secondary_ai_name: Optional[str] = None
     human_score: int = 0
     ai_score: int = 0
     winner: Optional[str] = None
