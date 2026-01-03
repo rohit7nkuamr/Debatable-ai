@@ -1,51 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { api } from '@/lib/api';
 
-// Mock video data
-const mockVideoData = {
-    id: '1',
-    title: 'AI vs Human: The Future of Creativity',
-    description: `An intense philosophical debate exploring whether artificial intelligence will enhance or replace human creativity in the arts. 
+interface TranscriptEntry {
+    time: string;
+    speaker: string;
+    text: string;
+}
 
-This debate covers:
-- The nature of creativity and consciousness
-- Historical precedents of technology changing art
-- The role of human emotion in creative expression
-- Potential collaboration between AI and human artists
+interface Comment {
+    id: number;
+    user: string;
+    text: string;
+    likes: number;
+    time: string;
+}
 
-Watch as our debaters go head-to-head on one of the most pressing questions of our time.`,
-    views: 12500,
-    likes: 892,
-    date: 'Dec 27, 2024',
+interface RelatedVideo {
+    id: string;
+    title: string;
+    views: number;
+    duration: string;
+}
+
+interface Video {
+    id: string;
+    title: string;
+    description: string;
+    views: number;
+    likes: number;
+    date: string;
     debaters: {
-        human: { name: 'Alex', avatar: '👤', score: 78 },
-        ai: { name: 'Aristotle', avatar: '🤖', score: 85 },
-    },
-    topic: 'The Impact of AI on Human Creativity',
-    winner: 'ai' as const,
-    duration: '24:30',
-    transcript: [
-        { time: '0:00', speaker: 'judge', text: 'Welcome to the Debate Arena! Today we discuss the impact of AI on human creativity.' },
-        { time: '0:45', speaker: 'human', text: 'I believe AI will fundamentally enhance human creativity by removing barriers to expression and democratizing artistic tools.' },
-        { time: '2:30', speaker: 'ai', text: 'While technology provides tools, I must contend that true creativity stems from the depth of human consciousness and lived experience that machines cannot replicate.' },
-        { time: '5:15', speaker: 'human', text: 'But consider the printing press, photography, digital art - each was feared as the death of creativity, yet art flourished.' },
-        { time: '8:00', speaker: 'ai', text: 'A fair historical parallel. However, those tools augmented human capability. AI generates content autonomously - a fundamentally different paradigm.' },
-        { time: '12:30', speaker: 'judge', text: 'Excellent points from both sides. Let us delve deeper into the philosophical implications.' },
-    ],
-    comments: [
-        { id: 1, user: 'PhilosophyFan99', text: 'Incredible debate! The AI made some really unexpected arguments.', likes: 45, time: '2 hours ago' },
-        { id: 2, user: 'TechDebater', text: 'Alex held his ground well against a tough opponent. Love this platform!', likes: 32, time: '3 hours ago' },
-        { id: 3, user: 'ArtistMind', text: 'As a digital artist, this debate really made me think about my own creative process.', likes: 28, time: '5 hours ago' },
-    ],
-    relatedVideos: [
-        { id: '2', title: 'Philosophy of Mind: Can Machines Think?', views: 8340, duration: '45:12' },
-        { id: '4', title: 'Climate Change: Technology vs Nature', views: 15200, duration: '32:18' },
-        { id: '5', title: 'Universal Basic Income: Necessity or Dystopia?', views: 9800, duration: '28:45' },
-    ],
-};
+        human: { name: string; avatar: string; score: number };
+        ai: { name: string; avatar: string; score: number };
+    };
+    topic: string;
+    winner: 'human' | 'ai' | 'draw' | null;
+    duration: string;
+    transcript: TranscriptEntry[];
+    comments: Comment[];
+    relatedVideos: RelatedVideo[];
+}
+
+
 
 export default function WatchPage() {
     const params = useParams();
@@ -53,8 +53,46 @@ export default function WatchPage() {
     const [currentTime, setCurrentTime] = useState(0);
     const [comment, setComment] = useState('');
     const [activeTab, setActiveTab] = useState<'transcript' | 'comments'>('transcript');
+    const [video, setVideo] = useState<Video | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const video = mockVideoData;
+    useEffect(() => {
+        if (params.id) {
+            const fetchVideo = async () => {
+                try {
+                    const fetchedVideo = await api.videos.get(params.id as string);
+                    // Adapt API response to component state if needed, or update component to use raw API response
+                    // For now, mapping to keep component structure similar
+                    setVideo({
+                        id: fetchedVideo.id,
+                        title: fetchedVideo.title,
+                        description: fetchedVideo.description || 'No description available.',
+                        views: fetchedVideo.views || 0,
+                        likes: fetchedVideo.likes || 0,
+                        date: new Date(fetchedVideo.created_at).toLocaleDateString(),
+                        debaters: {
+                            human: { name: fetchedVideo.human_debater || 'Human', avatar: '👤', score: 0 },
+                            ai: { name: fetchedVideo.ai_name || 'AI', avatar: '🤖', score: 0 },
+                        },
+                        topic: fetchedVideo.topic,
+                        winner: fetchedVideo.winner,
+                        duration: fetchedVideo.duration,
+                        transcript: [], // API needs to provide transcript if available
+                        comments: [], // API needs comments endpoint
+                        relatedVideos: [], // API needs related videos endpoint
+                    });
+                } catch (error) {
+                    console.error("Failed to load video", error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchVideo();
+        }
+    }, [params.id]);
+
+    if (loading) return <div className="arena-container" style={{ padding: '2rem', textAlign: 'center', color: 'white' }}>Loading...</div>;
+    if (!video) return <div className="arena-container" style={{ padding: '2rem', textAlign: 'center', color: 'white' }}>Video not found</div>;
 
     const formatViews = (views: number) => {
         if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
@@ -335,10 +373,10 @@ export default function WatchPage() {
                                     style={{
                                         padding: '0.75rem',
                                         borderLeft: `3px solid ${entry.speaker === 'human'
-                                                ? 'var(--gold)'
-                                                : entry.speaker === 'ai'
-                                                    ? 'var(--cyan)'
-                                                    : 'var(--crimson)'
+                                            ? 'var(--gold)'
+                                            : entry.speaker === 'ai'
+                                                ? 'var(--cyan)'
+                                                : 'var(--crimson)'
                                             }`,
                                         marginBottom: '0.75rem',
                                         background:

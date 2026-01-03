@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 // Dynamic import with SSR disabled (Three.js requires browser environment)
 const Arena3D = dynamic(() => import('@/components/3d/Arena3D'), {
@@ -85,6 +86,7 @@ function ArenaContent() {
         mode: 'one_vs_one' | 'ai_vs_ai';
     } | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const { user, loading: authLoading } = useAuth();
 
     const agentId = searchParams.get('agentId'); // Updated param name from prev file
     const topic = searchParams.get('topic');
@@ -94,9 +96,9 @@ function ArenaContent() {
     useEffect(() => {
         const initDebate = async () => {
             if (!agentId) {
-                // Determine a fallback or default behavior
-                // For now, let's just pick Aristotle if no agent selected
-                // In production, maybe redirect to agent selection
+                // If no agent selected, redirect to agents list to choose one
+                router.push('/agents');
+                return;
             }
 
             try {
@@ -105,7 +107,7 @@ function ArenaContent() {
                 const response = await api.debates.create(
                     topic || defaultTopic,
                     "You",
-                    agentId || "Aristotle",
+                    agentId,
                     mode,
                     secondaryAgentId || undefined
                 );
@@ -129,7 +131,18 @@ function ArenaContent() {
         if (!debateData) {
             initDebate();
         }
-    }, [agentId, topic, mode, secondaryAgentId, debateData]);
+    }, [agentId, topic, mode, secondaryAgentId, debateData, router, user, authLoading]);
+
+    // Auth & Tier Check
+    useEffect(() => {
+        if (!authLoading) {
+            if (!user) {
+                router.push('/login');
+            } else if (user.tier === 'free') {
+                router.push('/pricing');
+            }
+        }
+    }, [user, authLoading, router]);
 
     const handleStreamToggle = () => {
         setIsStreaming(!isStreaming);
@@ -147,6 +160,10 @@ function ArenaContent() {
                 {error}
             </div>
         );
+    }
+
+    if (authLoading || (user?.tier === 'free')) {
+        return <LoadingScreen message="Checking Credentials..." />;
     }
 
     if (!debateData) {

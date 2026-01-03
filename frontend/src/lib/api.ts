@@ -18,6 +18,19 @@ export const api = {
             }).then(r => r.json()),
         export: (id: string) =>
             fetch(`${API_BASE_URL}/api/agents/${id}/export`, { method: 'POST' }).then(r => r.json()),
+        uploadDocument: async (agentId: string, file: File) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch(`${API_BASE_URL}/api/agents/${agentId}/documents`, {
+                method: 'POST',
+                body: formData,
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ detail: 'Upload failed' }));
+                throw new Error(err.detail || 'Upload failed');
+            }
+            return res.json();
+        },
     },
 
     // Debate endpoints

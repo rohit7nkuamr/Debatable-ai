@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 
 interface Video {
     id: string;
@@ -21,92 +22,6 @@ interface Video {
     winner?: 'human' | 'ai' | 'draw';
 }
 
-// Mock data for videos
-const mockVideos: Video[] = [
-    {
-        id: '1',
-        title: 'AI vs Human: The Future of Creativity',
-        description: 'An intense debate on whether AI will enhance or replace human creativity in the arts.',
-        thumbnail: '/api/placeholder/400/225',
-        duration: '24:30',
-        views: 12500,
-        likes: 892,
-        date: '2 hours ago',
-        isLive: false,
-        debaters: { human: 'Alex', ai: 'Aristotle' },
-        topic: 'The Impact of AI on Human Creativity',
-        winner: 'ai',
-    },
-    {
-        id: '2',
-        title: 'Philosophy of Mind: Can Machines Think?',
-        description: 'Exploring consciousness, understanding, and whether AI can truly comprehend.',
-        thumbnail: '/api/placeholder/400/225',
-        duration: '45:12',
-        views: 8340,
-        likes: 623,
-        date: '1 day ago',
-        isLive: false,
-        debaters: { human: 'Sarah', ai: 'Plato' },
-        topic: 'Machine Consciousness',
-        winner: 'human',
-    },
-    {
-        id: '3',
-        title: '🔴 LIVE: Ethics of Autonomous Weapons',
-        description: 'Should AI be allowed to make life and death decisions in warfare?',
-        thumbnail: '/api/placeholder/400/225',
-        duration: 'LIVE',
-        views: 3421,
-        likes: 156,
-        date: 'Streaming now',
-        isLive: true,
-        debaters: { human: 'Dr. Chen', ai: 'Socrates' },
-        topic: 'Military AI Ethics',
-    },
-    {
-        id: '4',
-        title: 'Climate Change: Technology vs Nature',
-        description: 'Can technology save us from climate change, or is it part of the problem?',
-        thumbnail: '/api/placeholder/400/225',
-        duration: '32:18',
-        views: 15200,
-        likes: 1243,
-        date: '3 days ago',
-        isLive: false,
-        debaters: { human: 'Maya', ai: 'Darwin' },
-        topic: 'Technology and Climate',
-        winner: 'draw',
-    },
-    {
-        id: '5',
-        title: 'Universal Basic Income: Necessity or Dystopia?',
-        description: 'Debating the future of work and wealth distribution in an AI-driven economy.',
-        thumbnail: '/api/placeholder/400/225',
-        duration: '28:45',
-        views: 9800,
-        likes: 734,
-        date: '5 days ago',
-        isLive: false,
-        debaters: { human: 'James', ai: 'Marx' },
-        topic: 'Economic Policy',
-        winner: 'human',
-    },
-    {
-        id: '6',
-        title: 'Free Will vs Determinism',
-        description: 'The classic philosophical debate through the lens of modern neuroscience.',
-        thumbnail: '/api/placeholder/400/225',
-        duration: '41:22',
-        views: 7650,
-        likes: 567,
-        date: '1 week ago',
-        isLive: false,
-        debaters: { human: 'Emma', ai: 'Spinoza' },
-        topic: 'Philosophy of Mind',
-        winner: 'ai',
-    },
-];
 
 function VideoCard({ video }: { video: Video }) {
     const formatViews = (views: number) => {
@@ -264,11 +179,59 @@ function VideoCard({ video }: { video: Video }) {
 export default function FeedPage() {
     const [filter, setFilter] = useState<'all' | 'live' | 'recent' | 'popular'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [videos, setVideos] = useState<Video[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const filteredVideos = mockVideos.filter((video) => {
+    useEffect(() => {
+        const fetchVideos = async () => {
+            try {
+                setLoading(true);
+                // In a real app, you might pass filter params to the API
+                const fetchedVideos = await api.videos.list();
+
+                // Map backend response to frontend Video interface
+                const mappedVideos: Video[] = fetchedVideos.map((v: any) => ({
+                    id: v.id,
+                    title: v.title,
+                    description: v.description || '',
+                    thumbnail: v.thumbnail_url || '',
+                    duration: v.duration || '00:00',
+                    views: v.views || 0,
+                    likes: v.likes || 0,
+                    date: new Date(v.created_at).toLocaleDateString(),
+                    isLive: v.is_live,
+                    debaters: {
+                        human: v.human_debater || 'Human',
+                        ai: v.ai_name || 'AI'
+                    },
+                    topic: v.topic || '',
+                    winner: v.winner,
+                }));
+
+                setVideos(mappedVideos);
+            } catch (error) {
+                console.error("Failed to fetch videos:", error);
+                setVideos([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchVideos();
+    }, []);
+
+    const filteredVideos = videos.filter((video) => {
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            if (!video.title.toLowerCase().includes(query) &&
+                !video.topic.toLowerCase().includes(query)) {
+                return false;
+            }
+        }
+
         if (filter === 'live') return video.isLive;
         if (filter === 'recent') return !video.isLive;
-        if (filter === 'popular') return video.views > 10000;
+        if (filter === 'popular') return video.views > 100; // Adjusted threshold
         return true;
     });
 

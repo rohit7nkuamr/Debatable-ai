@@ -27,7 +27,7 @@ const personalities = [
 function AgentCard({ agent, onExport, onEdit }: {
     agent: Agent;
     onExport: (id: string) => void;
-    onEdit: (id: string) => void;
+    onEdit: (agent: Agent) => void;
 }) {
     return (
         <div className="card" style={{ padding: '1.5rem' }}>
@@ -76,15 +76,13 @@ function AgentCard({ agent, onExport, onEdit }: {
                 >
                     📤 Export
                 </button>
-                {!agent.isDefault && (
-                    <button
-                        onClick={() => onEdit(agent.id)}
-                        className="btn-secondary"
-                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                    >
-                        ✏️ Edit
-                    </button>
-                )}
+                <button
+                    onClick={() => onEdit(agent)}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                    📚 Train
+                </button>
             </div>
         </div>
     );
@@ -442,7 +440,12 @@ function TopicModal({ isOpen, onClose, onStartDebate, agent, allAgents }: {
     );
 }
 
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+
 export default function AgentsPage() {
+    const { user } = useAuth();
+    const router = useRouter();
     const [agents, setAgents] = useState<Agent[]>([]);
     const [showCreate, setShowCreate] = useState(false);
     const [exportAgent, setExportAgent] = useState<Agent | null>(null);
@@ -450,6 +453,7 @@ export default function AgentsPage() {
 
     // New state for starting debate
     const [debateAgent, setDebateAgent] = useState<Agent | null>(null);
+    const [uploadAgent, setUploadAgent] = useState<Agent | null>(null); // New state for document upload
 
     const fetchAgents = async () => {
         try {
@@ -583,6 +587,23 @@ export default function AgentsPage() {
                                     >
                                         📤 Export
                                     </button>
+                                    <button
+                                        onClick={() => {
+                                            if (user?.tier === 'free') {
+                                                router.push('/pricing');
+                                            } else {
+                                                setUploadAgent(agent);
+                                            }
+                                        }}
+                                        className="btn-secondary"
+                                        style={{
+                                            fontSize: '0.85rem',
+                                            padding: '0.5rem 1rem',
+                                            opacity: user?.tier === 'free' ? 0.7 : 1
+                                        }}
+                                    >
+                                        {user?.tier === 'free' ? '🔒 Train' : '📚 Train'}
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -609,6 +630,108 @@ export default function AgentsPage() {
                 agent={debateAgent}
                 allAgents={agents}
             />
+
+            <DocumentUploadModal
+                isOpen={!!uploadAgent}
+                onClose={() => setUploadAgent(null)}
+                agent={uploadAgent}
+            />
+        </div>
+    );
+}
+
+function DocumentUploadModal({ isOpen, onClose, agent }: {
+    isOpen: boolean;
+    onClose: () => void;
+    agent: Agent | null;
+}) {
+    const [file, setFile] = useState<File | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [message, setMessage] = useState('');
+
+    if (!isOpen || !agent) return null;
+
+    const handleUpload = async () => {
+        if (!file) return;
+        setUploading(true);
+        setMessage('');
+        try {
+            await api.agents.uploadDocument(agent.id, file);
+            setMessage('✅ Document uploaded successfully!');
+            setTimeout(() => {
+                setFile(null);
+                setMessage('');
+                onClose();
+            }, 1500);
+        } catch (error) {
+            console.error(error);
+            setMessage('❌ Upload failed.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+        }}>
+            <div className="card" style={{ maxWidth: '500px', width: '100%' }}>
+                <h2 style={{ color: 'var(--gold)', marginBottom: '0.5rem' }}>📚 Manage Knowledge</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                    Upload documents (PDF/TXT) to teach <strong>{agent.name}</strong> new facts.
+                </p>
+
+                <div style={{
+                    border: '2px dashed var(--surface-lighter)',
+                    padding: '2rem',
+                    textAlign: 'center',
+                    marginBottom: '1rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    background: file ? 'rgba(0, 255, 255, 0.05)' : 'transparent'
+                }}
+                    onClick={() => document.getElementById('doc-upload')?.click()}
+                >
+                    <input
+                        id="doc-upload"
+                        type="file"
+                        accept=".txt,.pdf"
+                        style={{ display: 'none' }}
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                    {file ? (
+                        <div>
+                            <div style={{ fontSize: '2rem' }}>📄</div>
+                            <div style={{ color: 'var(--cyan)', fontWeight: 600 }}>{file.name}</div>
+                        </div>
+                    ) : (
+                        <div>
+                            <div style={{ fontSize: '2rem' }}>📂</div>
+                            <div style={{ color: 'var(--text-muted)' }}>Click to select PDF or TXT</div>
+                        </div>
+                    )}
+                </div>
+
+                {message && <div style={{ marginBottom: '1rem', textAlign: 'center', color: message.startsWith('✅') ? 'green' : 'red' }}>{message}</div>}
+
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <button onClick={onClose} className="btn-secondary">Close</button>
+                    <button
+                        onClick={handleUpload}
+                        className="btn-primary"
+                        disabled={!file || uploading}
+                    >
+                        {uploading ? 'Uploading...' : 'Upload & Train'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

@@ -27,7 +27,7 @@ interface DebateArenaProps {
 export default function DebateArena({
     topic = 'The Impact of AI on Human Creativity',
     humanName = 'You',
-    aiName = 'Aristotle',
+    aiName = 'AI Agent',
 }: DebateArenaProps) {
     const [messages, setMessages] = useState<Message[]>([
         {

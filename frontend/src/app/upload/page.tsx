@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 
 export default function UploadPage() {
     const [dragActive, setDragActive] = useState(false);
@@ -10,17 +11,15 @@ export default function UploadPage() {
     const [description, setDescription] = useState('');
     const [topic, setTopic] = useState('');
     const [humanDebater, setHumanDebater] = useState('');
-    const [selectedAgent, setSelectedAgent] = useState('aristotle');
+    const [selectedAgent, setSelectedAgent] = useState('');
+    const [agents, setAgents] = useState<any[]>([]); // Replace with Agent interface
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const agents = [
-        { id: 'aristotle', name: 'Aristotle', icon: '🎭' },
-        { id: 'socrates', name: 'Socrates', icon: '❓' },
-        { id: 'darwin', name: 'Darwin', icon: '🔬' },
-        { id: 'custom', name: '+ My Agent', icon: '🤖' },
-    ];
+    useEffect(() => {
+        api.agents.list().then(setAgents).catch(console.error);
+    }, []);
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
@@ -144,7 +143,7 @@ export default function UploadPage() {
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="e.g., AI vs Human: The Future of Creativity"
+                            placeholder="e.g., The Future of Artificial Intelligence"
                             className="input-arena"
                             style={{ width: '100%' }}
                         />
@@ -207,7 +206,7 @@ export default function UploadPage() {
                             >
                                 {agents.map((a) => (
                                     <option key={a.id} value={a.id}>
-                                        {a.icon} {a.name}
+                                        🤖 {a.name}
                                     </option>
                                 ))}
                             </select>

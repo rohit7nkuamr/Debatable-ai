@@ -92,7 +92,7 @@ export default function Arena3D({
     debateId,
     topic = 'The Impact of AI on Human Creativity',
     humanName = 'You',
-    aiName = 'Aristotle',
+    aiName = 'AI Agent',
     secondaryAiName,
     mode = 'one_vs_one',
     isStreaming = false,
@@ -266,7 +266,7 @@ export default function Arena3D({
                 // Play Audio Response
                 // Use aiName as agentId fallback or passed prop (need to add prop)
                 // For now using aiName.toLowerCase() as approximation
-                await playAudio(aiMessage.content, aiName?.toLowerCase() || 'aristotle');
+                await playAudio(aiMessage.content, aiName?.toLowerCase() || 'default');
             }
 
         } catch (error) {

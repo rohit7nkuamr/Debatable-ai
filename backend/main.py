@@ -23,6 +23,13 @@ async def lifespan(app: FastAPI):
     # Startup
     print("🚀 Starting Samvad AI Backend...")
     print(f"📡 Groq API: {'Configured' if os.getenv('GROQ_API_KEY') else 'Not configured'}")
+    
+    # Initialize Database Tables
+    from database import engine
+    from models import db
+    db.Base.metadata.create_all(bind=engine)
+    print("✅ Database tables created (if not exist)")
+    
     yield
     # Shutdown
     print("👋 Shutting down Samvad AI Backend...")
@@ -39,13 +46,16 @@ app = FastAPI(
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
+# Include routers
+from routers import auth
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(agents.router, prefix="/api/agents", tags=["Agents"])
 app.include_router(debates.router, prefix="/api/debates", tags=["Debates"])
 app.include_router(videos.router, prefix="/api/videos", tags=["Videos"])

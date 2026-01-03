@@ -101,8 +101,10 @@ export default function MobileHomePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [videos, setVideos] = useState<Video[]>([]);
   const categoryRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Fetch videos from API
     const fetchVideos = async () => {
       try {
@@ -125,32 +127,14 @@ export default function MobileHomePage() {
           channel: 'Samvad AI',
           channelAvatar: '⚔️'
         }));
-        // If the API returns empty, keep fallback or handle empty state
         if (mappedVideos.length > 0) {
           setVideos(mappedVideos);
         } else {
-          // Fallback mock data for demo if API is empty
-          setVideos([
-            {
-              id: '1', title: 'AI vs Human: The Future of Creativity', thumbnail: '', duration: '24:30',
-              views: 125000, likes: 8920, date: '2 hours ago', isLive: false,
-              debaters: { human: 'Alex', ai: 'Aristotle' }, topic: 'AI & Creativity',
-              winner: 'ai', channel: 'Philosophy Arena', channelAvatar: '🎭',
-            },
-            // ... (add more mocks if needed for visual pop)
-          ]);
+          setVideos([]);
         }
       } catch (error) {
         console.error("Failed to fetch videos", error);
-        // Fallback on error
-        setVideos([
-          {
-            id: '1', title: 'AI vs Human: The Future of Creativity', thumbnail: '', duration: '24:30',
-            views: 125000, likes: 8920, date: '2 hours ago', isLive: false,
-            debaters: { human: 'Alex', ai: 'Aristotle' }, topic: 'AI & Creativity',
-            winner: 'ai', channel: 'Philosophy Arena', channelAvatar: '🎭',
-          }
-        ]);
+        setVideos([]);
       }
     };
 
@@ -163,6 +147,10 @@ export default function MobileHomePage() {
     : activeCategory === 'live'
       ? videos.filter(v => v.isLive)
       : videos;
+
+  if (!mounted) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <>
@@ -533,16 +521,7 @@ export default function MobileHomePage() {
 
       <div className="mobile-home">
         {/* Mobile Header */}
-        <header className="mobile-header">
-          <div className="mobile-logo">
-            ⚔️ SAMVAD AI
-          </div>
-          <div className="header-actions">
-            <button className="header-btn">🔔</button>
-            <button className="header-btn">🔍</button>
-            <Link href="/profile" className="header-btn">👤</Link>
-          </div>
-        </header>
+
 
         {/* Category Pills */}
         <div className="category-scroll" ref={categoryRef}>

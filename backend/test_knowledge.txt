@@ -1,0 +1,1 @@
+Samvad AI is a platform for debating with artificial intelligence agents. It allows users to watch debates, upload videos, and create custom agents.

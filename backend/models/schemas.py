@@ -178,3 +178,36 @@ class DocumentResponse(BaseModel):
     status: str  # "processing", "ready", "error"
     chunk_count: int = 0
     uploaded_at: datetime
+    
+# ============ AUTH SCHEMAS ============
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+class UserBase(BaseModel):
+    email: str  # Pydantic 2.x EmailStr requires installation, using str for simplicity or add import
+    full_name: Optional[str] = None
+    tier: str = "free" # "free" or "pro"
+
+class UserCreate(UserBase):
+    password: str
+
+class UserLogin(BaseModel):
+    email:  str
+    password: str
+
+class User(UserBase):
+    id: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Simple list of agent IDs owned by user
+    # In a real db, this would be a relationship, handled by from_attributes
+    # agents: List[str] = [] 
+
+    class Config:
+        from_attributes = True

@@ -10,6 +10,7 @@ import uuid
 from models.schemas import AgentCreate, AgentResponse, AgentExport, AgentPersonality
 
 from services.tts_service import tts_service, VOICE_MAPPING
+from services.rag_service import rag_service
 
 router = APIRouter()
 
@@ -106,14 +107,25 @@ async def upload_document(agent_id: str, file: UploadFile = File(...)):
     if agent_id not in agents_db:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    # TODO: Process document with LangChain and store in ChromaDB
+    # Process document with RAG Service
     content = await file.read()
+    
+    try:
+        chunks_added = rag_service.add_document(
+            agent_id=agent_id,
+            filename=file.filename,
+            file_content=content,
+            file_type=file.content_type
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
     doc_id = str(uuid.uuid4())
     agents_db[agent_id]["documents"].append({
         "id": doc_id,
         "filename": file.filename,
         "size": len(content),
+        "chunks": chunks_added,
         "uploaded_at": datetime.utcnow(),
     })
     agents_db[agent_id]["document_count"] += 1
@@ -121,8 +133,9 @@ async def upload_document(agent_id: str, file: UploadFile = File(...)):
     return {
         "document_id": doc_id,
         "filename": file.filename,
-        "status": "processing",
-        "message": "Document uploaded and being processed"
+        "status": "processed",
+        "chunks_indexed": chunks_added,
+        "message": "Document successfully indexed for RAG"
     }
 
 
