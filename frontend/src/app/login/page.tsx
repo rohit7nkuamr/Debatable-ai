@@ -23,7 +23,9 @@ export default function LoginPage() {
             formData.append('username', email);
             formData.append('password', password);
 
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+            if (!baseUrl) throw new Error("API URL not configured");
+
             const res = await fetch(`${baseUrl}/api/auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

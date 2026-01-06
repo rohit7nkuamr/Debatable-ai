@@ -19,7 +19,9 @@ export default function SignupPage() {
         setLoading(true);
 
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+            if (!baseUrl) throw new Error("API URL not configured");
+
             const res = await fetch(`${baseUrl}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
