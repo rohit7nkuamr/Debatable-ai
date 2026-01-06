@@ -1,6 +1,12 @@
 // API configuration for connecting to backend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-if (!API_BASE_URL) throw new Error("NEXT_PUBLIC_API_URL is not set");
+// API configuration for connecting to backend
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+// Helper to ensure URL is valid before request
+const getUrl = (endpoint: string) => {
+    if (!API_BASE_URL) throw new Error("NEXT_PUBLIC_API_URL is not set. Please configure it in your deployment settings.");
+    return `${API_BASE_URL}${endpoint}`;
+};
 
 export const api = {
     // Base URL
@@ -8,21 +14,21 @@ export const api = {
 
     // Agent endpoints
     agents: {
-        list: () => fetch(`${API_BASE_URL}/api/agents`).then(r => r.json()),
-        get: (id: string) => fetch(`${API_BASE_URL}/api/agents/${id}`).then(r => r.json()),
-        listVoices: () => fetch(`${API_BASE_URL}/api/agents/voices`).then(r => r.json()),
+        list: () => fetch(getUrl('/api/agents')).then(r => r.json()),
+        get: (id: string) => fetch(getUrl(`/api/agents/${id}`)).then(r => r.json()),
+        listVoices: () => fetch(getUrl('/api/agents/voices')).then(r => r.json()),
         create: (data: { name: string; personality: string; description?: string; voice_id?: string }) =>
-            fetch(`${API_BASE_URL}/api/agents`, {
+            fetch(getUrl('/api/agents'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             }).then(r => r.json()),
         export: (id: string) =>
-            fetch(`${API_BASE_URL}/api/agents/${id}/export`, { method: 'POST' }).then(r => r.json()),
+            fetch(getUrl(`/api/agents/${id}/export`), { method: 'POST' }).then(r => r.json()),
         uploadDocument: async (agentId: string, file: File) => {
             const formData = new FormData();
             formData.append('file', file);
-            const res = await fetch(`${API_BASE_URL}/api/agents/${agentId}/documents`, {
+            const res = await fetch(getUrl(`/api/agents/${agentId}/documents`), {
                 method: 'POST',
                 body: formData,
             });
@@ -37,7 +43,7 @@ export const api = {
     // Debate endpoints
     debates: {
         create: async (topic: string, humanName: string, aiAgentId: string, mode: 'one_vs_one' | 'ai_vs_ai' = 'one_vs_one', secondaryAgentId?: string) => {
-            const res = await fetch(`${API_BASE_URL}/api/debates/`, {
+            const res = await fetch(getUrl('/api/debates/'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -51,11 +57,11 @@ export const api = {
             return res.json();
         },
         get: async (id: string) => {
-            const res = await fetch(`${API_BASE_URL}/api/debates/${id}`);
+            const res = await fetch(getUrl(`/api/debates/${id}`));
             return res.json();
         },
         sendMessage: async (debateId: string, message: string) => {
-            const res = await fetch(`${API_BASE_URL}/api/debates/${debateId}/message`, {
+            const res = await fetch(getUrl(`/api/debates/${debateId}/message`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ debate_id: debateId, message }),
@@ -63,26 +69,26 @@ export const api = {
             return res.json();
         },
         triggerTurn: async (debateId: string) => {
-            const res = await fetch(`${API_BASE_URL}/api/debates/${debateId}/trigger_ai_turn`, {
+            const res = await fetch(getUrl(`/api/debates/${debateId}/trigger_ai_turn`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
             });
             return res.json();
         }, end: (id: string) =>
-            fetch(`${API_BASE_URL}/api/debates/${id}/end`, { method: 'POST' }).then(r => r.json()),
+            fetch(getUrl(`/api/debates/${id}/end`), { method: 'POST' }).then(r => r.json()),
     },
 
     // Video endpoints
     videos: {
         list: (filter?: string) =>
-            fetch(`${API_BASE_URL}/api/videos${filter ? `?filter=${filter}` : ''}`).then(r => r.json()),
-        get: (id: string) => fetch(`${API_BASE_URL}/api/videos/${id}`).then(r => r.json()),
+            fetch(getUrl(`/api/videos${filter ? `?filter=${filter}` : ''}`)).then(r => r.json()),
+        get: (id: string) => fetch(getUrl(`/api/videos/${id}`)).then(r => r.json()),
         like: (id: string) =>
-            fetch(`${API_BASE_URL}/api/videos/${id}/like`, { method: 'POST' }).then(r => r.json()),
+            fetch(getUrl(`/api/videos/${id}/like`), { method: 'POST' }).then(r => r.json()),
         startLive: (data: { title: string; topic: string; human_debater: string; ai_agent_id: string }) => {
             const formData = new FormData();
             Object.entries(data).forEach(([key, value]) => formData.append(key, value));
-            return fetch(`${API_BASE_URL}/api/videos/live/start`, {
+            return fetch(getUrl('/api/videos/live/start'), {
                 method: 'POST',
                 body: formData,
             }).then(r => r.json());
@@ -92,18 +98,18 @@ export const api = {
     // Judge endpoints
     judge: {
         score: (data: { topic: string; human_argument: string; ai_argument: string }) =>
-            fetch(`${API_BASE_URL}/api/judge/score`, {
+            fetch(getUrl('/api/judge/score'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             }).then(r => r.json()),
-        criteria: () => fetch(`${API_BASE_URL}/api/judge/criteria`).then(r => r.json()),
+        criteria: () => fetch(getUrl('/api/judge/criteria')).then(r => r.json()),
     },
 
     // TTS endpoints
     tts: {
         generate: (text: string, agentId: string) =>
-            fetch(`${API_BASE_URL}/api/tts/generate`, {
+            fetch(getUrl('/api/tts/generate'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text, agent_id: agentId }),
